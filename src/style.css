@@ -1,0 +1,19 @@
+@import url(./views/404/404.css);
+
+*,
+*::before,
+*::after {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+a {
+	text-decoration: underline;
+	color: purple;
+}
+body {
+	font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+}
+.active-link {
+	color: green;
+}
