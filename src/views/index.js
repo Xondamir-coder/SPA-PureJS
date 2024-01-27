@@ -4,6 +4,7 @@ import HomeView from './home/home.html?raw';
 import AboutView from './about/about.html?raw';
 import ContactView from './contact/contact.html?raw';
 
+// Importing classes
 import HomePageClass from './home';
 import ErrorPageClass from './404';
 import AboutPageClass from './about';

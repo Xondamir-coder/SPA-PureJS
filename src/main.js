@@ -1,27 +1,43 @@
 import './style.css';
 import Router from './router';
 import { ErrorPageClass, HomePageClass, AboutPageClass, ContactPageClass } from './views';
-const router = new Router();
 
-const loadClasses = async () => {
-	// Current url/path of the site
-	const path = window.location.pathname;
+class Main {
+	// Previous path
+	path = null;
 
-	// Scripts/Classes for each view/page
-	const classes = {
+	// Classes/Scripts of pages
+	classes = {
 		'/': HomePageClass,
 		'/about': AboutPageClass,
 		'/contact': ContactPageClass,
 		404: ErrorPageClass,
 	};
 
-	// Get appropriate classes by using path
-	const myClass = classes[path] || classes[404];
+	constructor() {
+		const router = new Router();
+		this.#instantiateClass();
 
-	// Instantiate it
-	const classInstance = new myClass();
-};
-loadClasses();
+		// Using popstate event of router to load classes dynamically
+		router.on('popstate', this.#instantiateClass.bind(this));
+	}
+	#instantiateClass() {
+		// Current url/path of the site
+		const path = window.location.pathname;
 
-// Using popstate event of router to load classes dynamically
-router.on('popstate', loadClasses);
+		// Guard clause so that if you click the same link twice in a row it won't load the class
+		if (path === this.path) return;
+
+		// Get appropriate class by using path
+		const myClass = this.classes[path] || this.classes[404];
+
+		// Instantiate a class
+		new myClass();
+
+		// Renew previous path
+		this.path = path;
+	}
+}
+
+// Instantiate main class
+new Main();

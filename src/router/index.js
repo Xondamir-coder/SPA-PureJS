@@ -1,4 +1,5 @@
 import { HomeView, AboutView, ContactView, ErrorView } from '../views';
+import { HomeLayout } from '../layouts';
 import EventEmitter from '../utils/EventEmitter';
 
 /**
@@ -7,6 +8,9 @@ import EventEmitter from '../utils/EventEmitter';
  * @gmail xondamirnazrullayev@gmail.com
  */
 export default class Router extends EventEmitter {
+	// Previous route
+	route = null;
+
 	// Routes with templates, titles and desc
 	routes = {
 		'/': {
@@ -28,25 +32,27 @@ export default class Router extends EventEmitter {
 			template: ErrorView,
 			title: '404 | SPA',
 			description: '404 Page',
+			// Override whole html
+			override: true,
 		},
 	};
 
 	// DOM element for appContainer
 	appContainer = document.querySelector('#app');
+	contentContainer = document.querySelector('#content');
 
 	/**
 	 * @constructor Set up event listeners and initial state
 	 */
 	constructor() {
 		super();
-		this.#activateLinkAndFetchHtml();
-		document.addEventListener('click', this.#handleRouting.bind(this));
-		window.addEventListener('popstate', () => {
-			this.#activateLinkAndFetchHtml();
+		this.#fetchHtml();
+		this.#activateLink();
 
-			// Emit popstate event such that other classes can listen to it
-			this.trigger('popstate');
-		});
+		document.addEventListener('click', this.#handleRouting.bind(this));
+
+		// Emit popstate event such that other classes can listen to it
+		window.addEventListener('popstate', this.trigger.bind(this, 'popstate'));
 	}
 
 	/**
@@ -63,9 +69,9 @@ export default class Router extends EventEmitter {
 		window.history.pushState({}, '', e.target.href);
 
 		// Make a link active and fetch corresponding html
-		this.#activateLinkAndFetchHtml();
+		this.#fetchHtml();
 
-		// Trigger popstate event manually, so loadClasses func in main.js works
+		// Trigger popstate event manually, so correspoding class/script in instantiated (check main.js)
 		this.#triggerEvent('popstate');
 	}
 
@@ -74,13 +80,30 @@ export default class Router extends EventEmitter {
 	 */
 	#fetchHtml() {
 		const path = window.location.pathname;
+
+		// Current route
 		const route = this.routes[path] || this.routes[404];
 
-		this.appContainer.innerHTML = route.template;
-		document.title = route.title;
-		document
-			.querySelector('meta[name="description"]')
-			.setAttribute('content', route.description);
+		if (route === this.route) return;
+
+		if (this.route?.override) {
+			// Return the layout
+			this.appContainer.innerHTML = HomeLayout;
+
+			// Reassign #content because it's been overriden
+			this.contentContainer = document.querySelector('#content');
+		}
+
+		const container = route.override ? this.appContainer : this.contentContainer;
+
+		// Write html & meta tags
+		this.#writeHtml(route, container);
+
+		// highlight link
+		this.#activateLink();
+
+		// Renew previous route
+		this.route = route;
 	}
 
 	/**
@@ -97,11 +120,16 @@ export default class Router extends EventEmitter {
 	}
 
 	/**
-	 * @desc Calls #fetchHtml and #activateLink functions
+	 * @desc Writes html and changes meta tags & title
+	 * @param {Object} route current route
+	 * @param {Element} container current container of html
 	 */
-	#activateLinkAndFetchHtml() {
-		this.#fetchHtml();
-		this.#activateLink();
+	#writeHtml(route, container) {
+		container.innerHTML = route.template;
+		document.title = route.title;
+		document
+			.querySelector('meta[name="description"]')
+			.setAttribute('content', route.description);
 	}
 
 	/**
