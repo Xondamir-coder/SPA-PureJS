@@ -8,18 +8,15 @@ import EventEmitter from '../utils/EventEmitter';
  * @gmail xondamirnazrullayev@gmail.com
  */
 export default class Router extends EventEmitter {
-	// Previous route
+	// Previous route & layout
 	route = null;
-
-	// Layouts
-	layouts = {
-		'/': IndexLayout,
-	};
+	layout = null;
 
 	// Routes with templates, titles and desc
 	routes = {
 		'/': {
 			template: HomeView,
+			layout: IndexLayout,
 			title: 'Home | SPA',
 			description: 'Home Page',
 		},
@@ -63,17 +60,22 @@ export default class Router extends EventEmitter {
 	/**
 	 * @desc Attach corresponding layout
 	 */
-	#attachLayout() {
-		const path = window.location.pathname;
-
+	#attachLayout(route = this.routes['/']) {
 		// Obtain corresponding layout
-		const layout = this.layouts[path] || this.layouts['/'];
+		const layout = route?.layout;
+
+		// Guard clause
+		if (layout === this.layout) return;
 
 		// Attach it to #app
-		this.appContainer.innerHTML = layout;
+		layout && (this.appContainer.innerHTML = layout);
+		console.log('new layout attached');
 
 		// Select contentContainer
 		this.contentContainer = document.querySelector('#content');
+
+		// Renew previous layout
+		this.layout = layout;
 	}
 
 	/**
@@ -109,7 +111,7 @@ export default class Router extends EventEmitter {
 		if (route === this.route) return;
 
 		// Attach the current layout
-		this.#attachLayout();
+		this.#attachLayout(route);
 
 		const container = route.override ? this.appContainer : this.contentContainer;
 

@@ -25,7 +25,7 @@ class Main {
 		// Current url/path of the site
 		const path = window.location.pathname;
 
-		// Guard clause so that if you click the same link twice in a row it won't load the class
+		// Guard clause
 		if (path === this.path) return;
 
 		// Get appropriate class by using path
