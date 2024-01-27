@@ -1,3 +1,3 @@
-import HomeLayout from './home.html?raw';
+import IndexLayout from './index.html?raw';
 
-export { HomeLayout };
+export { IndexLayout };

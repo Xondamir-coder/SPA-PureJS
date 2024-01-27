@@ -1,5 +1,5 @@
 import { HomeView, AboutView, ContactView, ErrorView } from '../views';
-import { HomeLayout } from '../layouts';
+import { IndexLayout } from '../layouts';
 import EventEmitter from '../utils/EventEmitter';
 
 /**
@@ -10,6 +10,11 @@ import EventEmitter from '../utils/EventEmitter';
 export default class Router extends EventEmitter {
 	// Previous route
 	route = null;
+
+	// Layouts
+	layouts = {
+		'/': IndexLayout,
+	};
 
 	// Routes with templates, titles and desc
 	routes = {
@@ -39,13 +44,13 @@ export default class Router extends EventEmitter {
 
 	// DOM element for appContainer
 	appContainer = document.querySelector('#app');
-	contentContainer = document.querySelector('#content');
 
 	/**
 	 * @constructor Set up event listeners and initial state
 	 */
 	constructor() {
 		super();
+		this.#attachLayout();
 		this.#fetchHtml();
 		this.#activateLink();
 
@@ -53,6 +58,22 @@ export default class Router extends EventEmitter {
 
 		// Emit popstate event such that other classes can listen to it
 		window.addEventListener('popstate', this.trigger.bind(this, 'popstate'));
+	}
+
+	/**
+	 * @desc Attach corresponding layout
+	 */
+	#attachLayout() {
+		const path = window.location.pathname;
+
+		// Obtain corresponding layout
+		const layout = this.layouts[path] || this.layouts['/'];
+
+		// Attach it to #app
+		this.appContainer.innerHTML = layout;
+
+		// Select contentContainer
+		this.contentContainer = document.querySelector('#content');
 	}
 
 	/**
@@ -84,15 +105,11 @@ export default class Router extends EventEmitter {
 		// Current route
 		const route = this.routes[path] || this.routes[404];
 
+		// Guard clause
 		if (route === this.route) return;
 
-		if (this.route?.override) {
-			// Return the layout
-			this.appContainer.innerHTML = HomeLayout;
-
-			// Reassign #content because it's been overriden
-			this.contentContainer = document.querySelector('#content');
-		}
+		// Attach the current layout
+		this.#attachLayout();
 
 		const container = route.override ? this.appContainer : this.contentContainer;
 
